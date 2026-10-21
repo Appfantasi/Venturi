@@ -26,6 +26,9 @@ jobs:
           & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
           "VCPKG_ROOT=$env:VCPKG_ROOT" >> $env:GITHUB_ENV
           & "$env:VCPKG_ROOT\vcpkg.exe" install ffmpeg:x64-windows
+          if ($LASTEXITCODE -ne 0) {
+            throw "Installazione FFmpeg non riuscita."
+          }
 
       - name: Check Rust workspace
         run: cargo check --workspace
@@ -33,9 +36,40 @@ jobs:
       - name: Build Windows executable
         run: cargo build --release --workspace
 
+      - name: Copy FFmpeg DLLs
+        shell: pwsh
+        run: |
+          $source = "$env:VCPKG_ROOT\installed\x64-windows\bin"
+          $destination = "target\release"
+
+          if (!(Test-Path $source)) {
+            throw "Cartella DLL di FFmpeg non trovata: $source"
+          }
+
+          New-Item -ItemType Directory -Force -Path $destination | Out-Null
+          $dlls = Get-ChildItem -Path $source -Filter "*.dll"
+
+          if ($dlls.Count -eq 0) {
+            throw "Nessuna DLL trovata nella cartella FFmpeg."
+          }
+
+          Copy-Item "$source\*.dll" $destination -Force
+
+          foreach ($name in @(
+            "avdevice-63.dll",
+            "avfilter-12.dll",
+            "avcodec-63.dll"
+          )) {
+            if (!(Test-Path (Join-Path $destination $name))) {
+              throw "DLL richiesta non trovata: $name"
+            }
+          }
+
       - name: Upload Windows build
         uses: actions/upload-artifact@v6
         with:
           name: Venturi-Windows
-          path: target/release/*.exe
-          if-no-files-found: warn
+          path: |
+            target/release/*.exe
+            target/release/*.dll
+          if-no-files-found: error
