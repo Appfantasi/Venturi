@@ -13,16 +13,10 @@ jobs:
 
     steps:
       - name: Download source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install FFmpeg
-        uses: crazy-max/ghaction-chocolatey@v3
-        with:
-          args: install ffmpeg-shared
-
       - name: Check Rust workspace
         run: cargo check --workspace
-        
