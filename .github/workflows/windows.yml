@@ -20,3 +20,13 @@ jobs:
 
       - name: Check Rust workspace
         run: cargo check --workspace
+
+      - name: Build Windows executable
+        run: cargo build --release --workspace
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v6
+        with:
+          name: Venturi-Windows
+          path: target/release/*.exe
+          if-no-files-found: warn
