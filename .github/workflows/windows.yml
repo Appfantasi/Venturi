@@ -25,7 +25,7 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
           & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
           "VCPKG_ROOT=$env:VCPKG_ROOT" >> $env:GITHUB_ENV
-         & "$env:VCPKG_ROOT\vcpkg.exe" install "ffmpeg[x264]:x64-windows"
+          & "$env:VCPKG_ROOT\vcpkg.exe" install "ffmpeg[x264]:x64-windows"
           if ($LASTEXITCODE -ne 0) {
             throw "Installazione FFmpeg non riuscita."
           }
