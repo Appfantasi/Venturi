@@ -1,4 +1,5 @@
-//! Which GPU decodes video (Settings > Playback): the setting resolved to
+
+ //! Which GPU decodes video (Settings > Playback): the setting resolved to
 //! the devices every decoder of the app tries, in order.
 
 use std::sync::{LazyLock, Mutex, OnceLock, RwLock};
@@ -231,6 +232,7 @@ fn created(mode: HwDecodeMode) -> Vec<HwDevice> {
 
 /// Default budget for the HW surfaces: an eighth of the physical memory,
 /// which on Apple Silicon is also the GPU's.
+#[cfg(not(target_os = "windows"))]
 pub fn default_budget_bytes() -> usize {
     // SAFETY: plain queries, -1 on failure.
     let (pages, page_size) = unsafe {
@@ -243,6 +245,12 @@ pub fn default_budget_bytes() -> usize {
         return 1_000_000_000;
     }
     pages as usize * page_size as usize / 8
+}
+
+/// Windows fallback: avoid Unix-only libc::sysconf calls.
+#[cfg(target_os = "windows")]
+pub fn default_budget_bytes() -> usize {
+    1_000_000_000
 }
 
 #[cfg(test)]
